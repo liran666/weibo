@@ -8,6 +8,19 @@ use Auth;
 
 class UsersController extends Controller
 {
+    public function __construct()
+    {
+        //除了此处指定的动作以外，所有其他动作都必须登录用户才能访问，类似于黑名单的过滤机制
+        $this->middleware('auth', [
+            'except' => ['show', 'create', 'store']
+        ]);
+
+        //只让未登录用户访问注册页面
+        $this->middleware('guest', [
+            'only' => ['create']
+        ]);
+    }
+
     public function create()
     {
         return view('users.create');
@@ -15,6 +28,7 @@ class UsersController extends Controller
 
     public function show(User $user)
     {
+        $this->authorize('update', $user);
         return view('users.show', compact('user'));
     }
 
@@ -39,11 +53,13 @@ class UsersController extends Controller
 
     public function edit(User $user)
     {
+        $this->authorize('update', $user);
         return view('users.edit', compact('user'));
     }
 
     public function update(User $user, Request $request)
     {
+        $this->authorize('update', $user);
         $this->validate($request, [
             'name' => 'required|max:50',
             'password' => 'required|confirmed|min:6'
